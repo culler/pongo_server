@@ -3,7 +3,7 @@ from django.db import transaction
 from django.shortcuts import redirect
 from spotipy import oauth2, Spotify, SpotifyException
 from .models import *
-from .client import PONGO_CLIENT_ID, PONGO_CLIENT_SECRET
+from pongo_server.settings import PONGO_CLIENT_ID, PONGO_CLIENT_SECRET
 import time
 import uuid
 import requests
