@@ -1,0 +1,14 @@
+{% extends "pongo/base.html" %}{% load static %}
+{% block title %}Pongo{% endblock %}
+{% block content %}
+<div id="error_box">
+  <h1>Sorry!</h1>
+<p>
+That was not a valid Spotify link or uri.
+</p>
+<div>
+<button onclick="location.href='/pongo/go_back'">OK</button>
+</div>
+{% endblock %}
+
+

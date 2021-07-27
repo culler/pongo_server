@@ -1,0 +1,178 @@
+{% extends "pongo/base.html" %}{% load static %}
+{% block title %}Pongo{% endblock %}{% block meta %}{% if new_album %}
+<meta http-equiv="refresh" content="1">{% endif %}
+<script type="text/javascript" src="{% static "pongo/pongo_search.js" %}">
+</script>
+{% endblock %}
+{% block script %}
+function toggleCheck(name) {
+    // Toggle a named checkbox.
+    var check = document.getElementsByName(name)[0];
+    check.checked = !check.checked;
+}
+
+function toggleDiscCheck(name) {
+    // Toggle the checkbox for a disc, and sync the track checkboxes.
+    // The class of a track checkbox matches the name of its disc's checkbox.
+    var disc = document.getElementsByName(name)[0];
+    var tracks = document.getElementsByClassName(name);
+    disc.checked = !disc.checked;
+    for (n=0; n<tracks.length; n++) {
+        tracks[n].checked = disc.checked;
+    }
+}
+
+function syncTrackChecks(name) {
+    // Copy the state of a disc checkbox to its track checkboxes.
+    var disc = document.getElementsByName(name)[0];
+    var tracks = document.getElementsByClassName(name);
+    for (n=0; n<tracks.length; n++) {
+        tracks[n].checked = disc.checked;
+    }
+}
+
+function spotifySaveAlbum(id) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        var DONE = this.DONE || 4;
+        if (this.readyState === DONE){
+            location.reload();
+        }
+    };
+    request.open('GET', '/spotify/album/save/' + id, true);
+    request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    request.send(null);
+}
+
+function spotifyUnsaveAlbum(id) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        var DONE = this.DONE || 4;
+        if (this.readyState === DONE){
+            location.reload();
+        }
+    };
+    request.open('GET', '/spotify/album/unsave/' + id, true);
+    request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    request.send(null);
+}
+
+function pongoTogglePlay() {
+  var menu = document.getElementById('play_menu');
+  if ( menu.style.display != 'block') {
+    menu.style.display='block';
+  }
+  else {
+    menu.style.display='none';
+  }
+}
+
+{% endblock %}
+{% block style %}
+div#albums_tab {
+ color: #ffffff;
+background-color: #0000e0;
+font-weight: bold;
+}
+{% endblock %}
+{% block backbutton %}
+        <div id="back" onclick="location.href='/albums';">
+	  <span id="back_arrow"><i class="fa fa-chevron-left"></i></span>
+	  <span id="back_text">ALBUMS</span>
+	</div>
+{% endblock %}
+
+{% block keyup %}onkeyup="pongoTrackSearchKey(event);"{% endblock %}
+{% block next %}onclick="pongoNextTrack();"{% endblock %}>
+{% block previous %}onclick="pongoPreviousTrack();"{% endblock %}
+
+{% block content %}{% if invalid_id %}
+<div id="album_error">
+  <p>Sorry,<br>
+    the Spotify album:<br>
+    {{ invalid_id }},<br>
+    could not be retrieved.  Are you signed in to Spotify?</p>
+</div>{% elif failed_id %}
+<div id="album_error">
+  <p>Sorry,<br>
+    the Spotify album:<br>
+    {{ failed_id }}<br>
+    could not be loaded.</p>
+</div>{% else %}
+    <div id="cover_header">
+      <img class="album_cover_header large"
+           src="{{ album.large_image_url }}" alt="cover of {{ album.name }}">
+    </div>
+    <div id="save_button">{% if album.owned %}
+      <button class="save" type="button"
+              onmouseover="this.innerHTML='REMOVE';"
+              onmouseout="this.innerHTML='SAVED';"
+              onclick="spotifyUnsaveAlbum('{{ album.id }}');"
+              >SAVED</button>{% else %}
+      <button class="save" type="button"
+              onclick="spotifySaveAlbum('{{ album.id }}');"
+              >SAVE</button>{% endif %}
+    </div>
+    <form method="post" action="/spotify/album/action/">
+      {% csrf_token %}
+      <div id="tracks">{% for disc in discs %}{% if many_discs %}
+	<h2 class="disc">
+          <input type="checkbox"
+		 name="disc_{{ forloop.counter }}"
+		 onchange="syncTrackChecks('disc_{{ forloop.counter }}');">
+          <span onclick="toggleDiscCheck('disc_{{ forloop.counter }}');">
+            Disc {{ forloop.counter }}</span></h2>{% else %}
+	<div style="height: 20px;">
+	</div>{% endif %}
+	<ul class="track_list">{% for track in disc %}
+          <li class="track">
+            <div class="track_item" onclick="toggleCheck('track_{{ forloop.parentloop.counter }}_{{track.track_number}}');">
+              <input type="checkbox"
+                     onclick="this.checked = !this.checked;"
+                     class="track_check disc_{{ forloop.parentloop.counter }}"
+                     name="track_{{ forloop.parentloop.counter }}_{{ track.track_number}}">
+              <span class="track_name">{{ track.name }}</span>
+              <div class="track_artists">
+		{{ track.artist_names }}
+              </div>
+            </div>
+          </li>{% endfor %}
+	</ul>{% endfor %}{% endif %}
+
+	<input type="hidden" name="album_id" value="{{ album.id }}" />
+	<ul id="play_menu">
+	  <li><input class="play" type="submit" name="play_album"
+		     value="Play Album" /></li>
+	  <li><input class="play" type="submit" name="play_tracks"
+		     value="Play Selected Tracks" /></li>
+	  <li><input class="play" type="submit" name="queue_album"
+		     value="Queue Album" /></li>
+	  <li><input class="play" type="submit" name="queue_tracks"
+		     value="Queue Selected Tracks" /></li>
+	  {% if spotify_user and album.owned %}
+	  <li>
+	    <span class="menu" onclick="spotifyUnsaveAlbum('{{ album.id }}');">
+              Remove from Spotify</span>
+	  </li>{% else %}
+	  <li>
+	    <span class="menu" onclick="spotifySaveAlbum('{{ album.id }}');">
+              Save on Spotify</span>
+	  </li>{% endif %}
+	  <li><input class="play" type="submit" name="pongo_remove_album"
+		     value="Remove from Pongo" /></li>
+	</ul>
+    </form>
+{% endblock %}
+{% block filter %}{% endblock %}
+{% block tools %}
+      <div class="toolleft" onclick="location.href='/settings/';">
+	<i class="fa fa-cog fa-2x"></i></div>
+      <div class="tool" onclick="pongoToggleSearch();">
+	<i class="fa fa-search"></i><br>
+	<span class="tooltext">FIND</span></div>
+      <button id="playbutton" onclick="pongoTogglePlay();">
+	<i class="fa fa-play"></i><span class="playtext">PLAY ...</span>
+      </button>
+{% endblock %}
+
+  

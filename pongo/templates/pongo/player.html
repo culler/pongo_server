@@ -1,0 +1,146 @@
+{% extends "pongo/base.html" %}{% load static %}
+{% block title %}Pongo{% endblock %}
+{% block meta %}
+<script type="text/javascript" src="{% static "pongo/pongo_search.js" %}">
+</script>
+{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'pongo/font-awesome.min.css' %}">{% endblock %}
+{% block script %}
+
+var pageLoadMillis;
+var playerReady = {{ player_ready }};
+var tracksAhead = {{ tracks_ahead }};
+var isPaused = {{ is_paused }};
+var noScroll = {{ prevent_scroll }};
+
+function updateTimer() {
+    var remaining = {{ remaining }};
+    var nowMillis = (new Date()).getTime();
+    var elapsed = nowMillis - pageLoadMillis;
+    remaining -= elapsed;
+    var s = Math.floor(remaining/1000 % 60);
+    var m = Math.floor((remaining/60000) % 60);
+    if(remaining < 0 && tracksAhead > 0) {
+	location.reload();
+    }  else if (remaining >= 0) {
+	document.getElementById('timer_minutes').innerHTML = m;
+	document.getElementById('timer_colon').innerHTML = ':';
+	document.getElementById('timer_seconds').innerHTML = ('0' + s).slice(-2);
+    }
+}
+
+function playerAction(action) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+	var DONE = this.DONE || 4;
+	if (this.readyState === DONE){
+	    location.reload();
+	}
+    };
+    request.open('GET', '/player/' + action + '/', true);
+    request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    request.send(null);
+}
+
+function moveTrackToTop() {
+    if (noScroll) {
+	return;
+    }
+    var control = document.getElementById('player_control');
+    var controlBottom = control.getBoundingClientRect().bottom;
+    var track = document.getElementById('current_track');
+    if (track) {
+	var trackTop = track.getBoundingClientRect().top;
+	window.scrollBy(0, trackTop - controlBottom - 5);
+    }
+}
+
+function reloadPage() {
+    location.reload();
+}
+
+window.onload = function() {
+    pageLoadMillis = (new Date()).getTime();
+    if (!playerReady) {
+        setTimeout(reloadPage, 1000);
+        return;
+    }
+    if (isPaused) {
+	updateTimer();
+    } else if (tracksAhead > 0) {
+        setTimeout(moveTrackToTop, 100);
+        setInterval(updateTimer, 1000);
+    }
+}
+
+{% endblock %}
+{% block style %}
+div#player_tab {
+ color: #ffffff;
+ background-color: #0000e0;
+ font-weight: bold;
+}
+{% endblock %}
+
+{% block keyup %}onkeyup="pongoTrackSearchKey(event);"{% endblock %}
+{% block next %}onclick="pongoNextTrack();"{% endblock %}>
+{% block previous %}onclick="pongoPreviousTrack();"{% endblock %}
+
+{% block content %}
+  <div id="player_control">
+    <button class="player"
+            {% if has_current_track == "false" or is_paused == "true"%}disabled{% endif %}
+	    onclick="playerAction('pause');">
+      <i class="fa fa-pause"></i>
+    </button><button class="player"
+            {% if has_current_track == "false" %}disabled{% endif %}
+            onclick="playerAction('play');">
+      <i class="fa fa-play"></i>
+    </button><button class="player"
+	    {% if can_go_back == "false" %}disabled{% endif %}
+            onclick="playerAction('back');">
+      <i class="fa fa-step-backward"></i>
+    </button><button class="player"
+            {% if can_go_forward == "false" %}disabled{% endif %}
+            onclick="playerAction('forward');">
+      <i class="fa fa-step-forward"></i>
+    </button><button class="player"
+            {% if queue_length == 0 %}disabled{% endif %}
+	    onclick="playerAction('eject');">
+      <i class="fa fa-eject"></i>
+    </button><button class="player"
+            {% if queue_length == 0 %}disabled{% endif %}
+	    onclick="playerAction('shuffle');">
+      <i class="fa fa-random"></i>
+    </button>
+    <br>
+    <span id="timer_minutes" class="minutes"></span>
+    <span id="timer_colon" class="colon">&nbsp;</span>
+    <span id="timer_seconds" class="seconds"></span>
+  </div>
+<form method="post" action="queue/current">
+<div id="queue">
+  {% for track in tracks %}
+  <div class="track_item"{% if track.is_current %} id="current_track"{% endif %}>
+    <input class="queue_radio" type="radio" name="select_track" value="track.id" {% if track.is_current %}checked="checked"{% else %} onclick="playerAction('jump/{{ forloop.counter0 }}');"{% endif %}>
+    <div class="queue_delete" onclick="playerAction('remove/{{ forloop.counter0 }}');">
+      <i class="fa fa-times-circle"></i>
+    </div>
+    <div class="{% if track.is_current %}green {% endif %}track_name">
+      <span class="track_time">[{{ track.duration }}]</span>{{ track.name }}
+    </div>
+    <div class="track_artists">
+      {{ track.artist_names }}
+    </div>
+  </div>{% endfor %}
+</div>
+</form>
+{% endblock %}
+{% block tools %}
+      <div class="toolleft" onclick="location.href='/settings/';">
+	<i class="fa fa-cog fa-2x"></i></div>
+      <div class="tool" onclick="pongoToggleSearch();">
+	<i class="fa fa-search"></i><br>
+	<span class="tooltext">FIND</span></div>
+{% endblock %}

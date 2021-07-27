@@ -1,0 +1,16 @@
+[Unit]
+Description=uWSGI for pongo_server
+After=syslog.target
+
+[Service]
+ExecStart=/home/pongo/Pongo/djangoenv/bin/uwsgi \
+         --ini /var/tmp/pongo_server/uwsgi.ini \
+         --socket /var/tmp/pongo_server/nginx.socket
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

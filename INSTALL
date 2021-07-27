@@ -1,0 +1,24 @@
+sudo apt-get install nginx
+sudo apt-get install zlib1g-dev
+sudo apt-get install libjpeg-dev
+sudo apt-get install libffi-dev
+sudo apt-get install libssl-dev
+sudo apt-get install python3-dev
+sudo apt-get install python3-pip
+sudo apt-get install python3-venv
+
+python3 -m venv djangoenv
+source djangoenv/bin/activate
+pip install uwsgi
+pip install django
+pip install Pillow
+pip install --upgrade pyopenssl
+pip install --upgrade ndg-httpsclient
+pip install --upgrade requests
+cd pongo_server spotipy
+python setup.py install
+
+Installing files in /etc and /var:
+=========================
+Note: the avahi config file pongo.service must be writable by the
+pongo user!

@@ -1,0 +1,119 @@
+<!doctype html>{% load static %}
+<html lang="en">
+  <head>
+    <title>{% block title %}{{ server }}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <meta name="description" content="{% block description %}Pongo music server.{% endblock %}">
+{% block meta %}
+{% endblock %}
+  <link rel="stylesheet" type="text/css"
+	href="{% static 'pongo/pongo.css' %}" />
+  <link rel="stylesheet" type="text/css"
+	href="{% static 'pongo/font-awesome.min.css' %}">
+{% block css %}{% endblock %}
+  <script type="text/javascript">{% block script %}{% endblock %}
+  </script>
+  <style type="text/css">
+{% block style %}
+{% endblock %}
+  </style>
+  </head>
+  <body>
+{% block navigation %}
+    <div id="top_space">
+    </div>
+    <div id="search_bar">
+      <div id="search_container">
+	<div id="search_left">
+	  <input id="search_entry" type="search" placeholder="Find"
+		 onfocus="pongoIOSScrollHack()"
+		 {% block keyup %}onkeyup="pongoAlbumSearchKey(event);"{% endblock %}>
+	</div>
+	<div id="search_right">
+	  <button id="search_next"
+		  {% block next %}onclick="pongoNextAlbum();"{% endblock %}>
+	    <i class="fa fa-chevron-down"></i>
+	  </button><button id="search_previous"
+		  {% block previous %}onclick="pongoPreviousAlbum();"{% endblock %}>
+	    <i class="fa fa-chevron-up"></i>
+	  </button>
+	</div>
+      </div>
+    </div>
+    <div id="top_bar">
+      <div id="title_bar">
+  {% block backbutton %}
+  {% if is_app %}
+	<div id="back" onclick="location.href='/pongo/connect';">
+	<span id="back_arrow"><i class="fa fa-chevron-left"></i></span>
+	<span id="back_text">CONNECT</span>
+	</div>
+  {% endif %}{% endblock %}
+  {% block spotify_user %}
+	<div id="spotify_user">{% if spotify_user %}
+	  <form method="get" action="/spotify/sign_out/">
+	    <input type="hidden" name="redirect" value="{{ request.path }}" >
+            <span class="username green">{{ spotify_user }}</span>
+	    <input class="auth" type="submit" value="Sign out">
+	  </form>{% else %}
+	  <form method="get" action="/spotify/sign_in/">
+	    <input type="hidden" name="redirect", value="{{ request.path }}" >
+	    <input class="auth" type="submit" value="Sign in">
+	  </form>{% endif %}
+	</div>
+  {% endblock %}
+  {% block heading %}	
+	{{ server }}
+  {% endblock %}
+      </div>
+  {% block tabbar %}
+      <div id="tab_control">
+	<div id="playlists_tab" class="tab tab_left"
+	     onclick="location.href='/playlists/';">
+	  PLAYLISTS
+	</div><div id="albums_tab" class="tab"
+		   onclick="location.href='/albums/';">
+	  ALBUMS
+	</div><div id="suggest_tab" class="tab"
+		   onclick="location.href='/suggest/';">
+	  SUGGEST
+	</div><div id="player_tab" class="tab tab_right"
+		   onclick="location.href='/player/';">
+	  PLAYER
+	</div>
+      </div>
+   {% endblock %}  
+    </div><!-- top_bar -->
+{% endblock %}
+<div id="content">
+{% block content %}
+{% endblock %}
+</div><!-- content -->
+{% block sort %}{% endblock %}
+<div id="toolbar">
+   {% block tools %}
+      <div class="toolleft" onclick="location.href='/settings/';">
+	<i class="fa fa-cog fa-2x"></i></div>
+
+      <div class="tool" onclick="pongoToggleSearch();">
+	<i class="fa fa-search"></i><br>
+	<span class="tooltext">FIND</span></div>
+
+      <div class="tool" onclick="pongoToggleSort();">
+	<i class="fa fa-sort"></i><br>
+	<span class="tooltext">SORT</span></div>
+
+      <div class="tool" onclick="location.href='/spotify/sync_albums/?redirect={{ request.path }};'">
+	<i class="fa fa-refresh"></i><br>
+	<span class="tooltext">SYNC</span></div>
+
+      <div class="tool" onclick="location.href='/pongo/paste_link';">
+	<i class="fa fa-link"></i><br>
+	<span class="tooltext">LINK</span></div>
+  {% endblock %}
+  </div><!-- toolbar -->
+{% block tailscript %}
+{% endblock %}
+  </body>
+</html>

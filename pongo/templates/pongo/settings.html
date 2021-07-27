@@ -1,0 +1,362 @@
+{% extends "pongo/base.html" %}{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'pongo/font-awesome.min.css' %}">{% endblock %}
+{% block style %}
+div#top_bar {
+    height: 40px;
+}
+div#content {
+    padding-left: 20px;
+    padding-top: 0px;
+}
+div#top_space {
+    height: 40px;
+}
+input[type=submit] {
+    width: 140px;
+}
+div.wifi {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid black;
+    width: 300px;
+}
+ul.access_points {
+    list-style: none;
+    margin: 0px 0px 5px 0px;
+    width: 300px;
+    padding: 0px;
+}
+ul.access_points li {
+    padding: 4px 0;
+    margin: 0px;
+}
+ul.access_points input[type=radio]{
+    position: relative;
+    bottom: 3px;
+}
+ul.access_points h3 {
+    font-size: 100%;
+    margin: 0 0 3px 0;
+}
+span.ssid {
+    display: inline-block;
+    width: 210px;
+    overflow: hidden;
+    font-weight: bold;
+} 
+table.signal {
+    margin: 0px 0px 10px 0;
+    padding: 0px;
+    width: 300px;
+}
+table.signal td.color {
+    width: 25px;
+}
+table.signal td.low {
+    width: 67px;
+    text-align: right;
+}
+table.signal td.high {
+    text-align: left;
+}
+table.signal th {
+    padding-left: 20px;
+}
+h2 {
+    font-size: 18px;
+}
+div.usb_drives {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid black;
+    width: 300px;
+}
+ul.usb_drives {
+    list-style: none;
+}
+h2 i.fa {
+    font-size: 24px;
+    width: 24px;
+    text-align: left;
+    margin: 0px;
+    position: relative;
+    top: 2px;
+}
+h2.toggler {
+    cursor: pointer;
+}
+.hidden {
+    display: none;
+}
+table.form_table {
+    width: 320px;
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 10px;
+}
+td.label {
+   font-weight: bold;
+   width: 90px;
+   text-align: right;
+   padding-right: 10px;
+}
+input#pongo_name {
+    width: 100px;
+}
+input#username,
+input#password {
+    width: 150px;
+}
+span.uri {
+    color: blue;
+    font-size: 80%;
+}
+input#reconnect {
+    margin-top: 20px;
+}
+td.submit {
+    text-align: center;
+    padding-top:30px;
+}
+div.blurb {
+    padding: 10px 0px 20px 10px;
+}
+div.wifi_password {
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 10px;
+    width: 320px;
+    position: absolute;
+    top: 80px;
+    left: 10px;
+    text-align: center;
+}
+div#power {
+    width: 230px;
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    margin: 20px 0px 0px 30px;
+}
+div#power input[type="submit"] {
+    margin: 10px;
+}
+{% endblock %}
+{% block script %}
+function toggleDisplay(id) {
+    var block = document.getElementById(id);
+    var descendents = block.getElementsByTagName('*');
+    for (var i = 0; i < descendents.length; i++) {
+	var elt = descendents[i];
+	if (elt.classList.contains('toggle')) {
+	    if (elt.style.display != 'none' ) {
+		elt.style.display = 'none';
+	    } else {
+		if (elt.nodeName == 'I') {
+		    elt.style.display='inline-block';
+		} else {
+		    elt.style.display='block';
+		}
+	    }
+	}
+    }
+}
+{% endblock %}
+{% block title %}Pongo{% endblock %}
+  {% block backbutton %}
+        <div id="back" onclick="location.href='/albums';">
+          <span id="back_arrow"><i class="fa fa-chevron-left"></i></span>
+          <span id="back_text">DONE</span>
+        </div>
+  {% endblock %}{% block spotify_user %}{% endblock %}{% block tabbar %}{% endblock %}  
+  {% block heading %}
+    {{ server }} Settings
+  {% endblock %}
+  {% block content %}
+{% if get_password %}
+  <div class="wifi_password">
+    <form method="post" action="/settings/connect_new/">
+    {% if no_password %}
+    No password is saved for:<br>
+    {{ ssid }}.
+    <p>
+    Please enter the password.
+    </p>
+    {% else %}{% if saved_failed %}
+    Failed to connect to {{ ssid }} using the saved password.
+    <p>
+    Enter a new password, or leave blank to retry with the saved password.
+    </p>
+    {% else %}
+    Failed to connect to {{ ssid }} using password {{password}}.
+    <p>
+    Please enter the password again.
+    </p>
+    {% endif %}{% endif %}
+    {% csrf_token %}
+    <input type="hidden" name="ssid" value="{{ ssid }}">
+    <input class="password" id="password" name="password" type="password" value=""><br>
+    <input type="submit" id="reconnect" value="Connect">
+    </form>
+  </div>
+{% else %}
+  <div id="pongo_name_block">
+    <h2 class="toggler" onclick="toggleDisplay('pongo_name_block');">
+      <i class="fa fa-caret-right toggle" style="display: inline-block;"></i>
+      <i class="fa fa-caret-down toggle" style="display: none;"></i>
+      Name</h2>
+    <div class="toggle" style="display: none;">
+      <form action="/settings/name/" method="post">
+	{% csrf_token %}
+	<table class="form_table">
+	  <tr>
+	    <td colspan="2">
+	      <div class="blurb">
+		  Choose a name for your Pongo.
+	      </div>
+	    </td>
+	  </tr>
+	  <tr>
+	    <td class="label">Name:</td>
+	    <td><input id="pongo_name" name="pongo_name" type="text"
+		       value="{{ server }}"></td>
+	  </tr>
+	  <tr>
+	    <td class="submit" colspan="2"><input type="submit" value="Save"></td>
+	  </tr>
+	</table>
+      </form>
+    </div>
+  </div>
+
+  <div id="access_point_block">	
+    <h2 class="toggler" onclick="toggleDisplay('access_point_block');">
+      <i class="fa fa-caret-right toggle" style="display: inline-block;"></i>
+      <i class="fa fa-caret-down toggle" style="display: none;"></i>
+      WiFi</h2>
+    <div class="toggle wifi" style="display: none;">
+      <table class="toggle signal" style="display: none;">
+	<tr><th colspan="7">Signal Strength</th></tr> 
+	<tr>
+	  <td class="low">Low</td>
+	  {% for color in colors %}
+	  <td class="color" style="background-color: {{ color }};"></td>
+	  {% endfor %}
+	  <td class="high">High</td>
+	</tr>
+      </table>
+      {% if connected %}
+      <form method="post" action="/settings/disconnect/">
+	{% csrf_token %}
+	<ul class="access_points toggle" style="display: none;">
+	  <h3>Connected to:</h3>
+	  {% for ap in connected %}
+	  <li>
+            <input type="radio" name="device" value="{{ ap.device }}"
+              {% if forloop.first %}checked="checked"{% endif %}>
+	    <span class="ssid" style="color: {{ ap.color }}">{{ ap.ssid }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+	{% if up_count > 1 %}
+        <div style="text-align: center">
+          <input type="submit" value="Disconnect">
+	</div>
+	{% endif %}
+      </form>
+      {% endif %}
+      <form method="post" action="/settings/connect/">
+        {% csrf_token %}
+	<h3>Available:</h3>
+	<ul class="access_points toggle" style="display: none;">
+          {% for ap in access_points %}
+          <li>
+            <input type="radio" name="ssid" value="{{ ap.ssid }}"
+            {% if ap.active %}checked="checked"{% endif %}>
+	    <span class="ssid" style="color: {{ ap.color }}">{{ ap.ssid }}</span>
+	  </li>
+          {% endfor %}
+        </ul>
+	<div style="text-align: center">
+	  <input type="submit" id="connect" value="Connect">
+	</div>
+      </form>  
+    </div>
+  </div>
+
+  <div id="usb_drive_block">
+    <h2 class="toggler" onclick="toggleDisplay('usb_drive_block');">
+      <i class="fa fa-caret-right toggle" style="display: inline-block;"></i>
+      <i class="fa fa-caret-down toggle" style="display: none;"></i>
+      USB Flash Drives</h2>
+    <div class="usb_drives toggle" style="display: none;">
+      <form method="post" action="/settings/eject/">
+	{% csrf_token %}
+	<ul class="usb_drives toggle" style="display: none;">
+          {% for drive in usb_drives %}
+          <li>
+            <input type="checkbox" name="eject[]" value="{{ drive.device }}">
+	    <label>{{ drive.label }}</label>
+	  </li>
+	  {% empty %}
+	  <li> No USB drives are mounted. </li>
+          {% endfor %}
+	</ul>
+	{% if usb_drives %}<div style="text-align: center">
+	  <input type="submit" id="eject" value="Eject">
+	</div>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div id="spotify_credentials_block">
+    <h2 class="toggler" onclick="toggleDisplay('spotify_credentials_block');">
+      <i class="fa fa-caret-right toggle" style="display: inline-block;"></i>
+      <i class="fa fa-caret-down toggle" style="display: none;"></i>
+      Spotify Credentials</h2>
+    <div class="credentials toggle" style="display: none;"> 
+    <form method="post" action="settings/credentials/">
+      {% csrf_token %}
+      <table class="form_table">
+	<tr>
+	  <td colspan="2">
+	    <div class="blurb">
+	    Pongo&apos;s Spotify player uses libspotify, which requires a valid
+	      username and password for a Spotify Premium account.  The
+	      password will be stored in an encrypted form to protect the
+	      security of your Spotify account.
+	    </div>
+	  </td>
+	</tr>
+	<tr>
+	  <td class="label">Username:</td>
+	  <td><input id="username" name="username" type="text"></td>
+	</tr>
+	<tr>
+	  <td class="label">Password:</td>
+	  <td><input id="password" name="password" type="password"></td>
+	</tr>
+	<tr>
+	  <td class="submit" colspan="2"><input type="submit" value="Save"></td>
+	</tr>
+      </table>
+    </form>
+    </div>
+  </div>
+  <div id="power">
+  <i class="fa fa-power-off"></i>
+  <form method="post" action="/settings/restart/">
+  {% csrf_token %}
+  <input type="submit" name="restart" id="restart" value="Restart">
+  </form>
+  <form method="post" action="/settings/shutdown/">
+  {% csrf_token %}
+  <input type="submit" name="shutdown" id="shutdown" value="Shut down">
+  </form>
+  </div>
+</div>
+{% endif %}
+  {% block tools %}{% endblock %}
+  {% endblock %}

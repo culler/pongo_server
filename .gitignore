@@ -1,0 +1,5 @@
+__pycache__
+settings.py
+client.py
+db.sqlite3
+*.pyc
