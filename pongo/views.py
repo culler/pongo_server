@@ -4,11 +4,14 @@ from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.utils.cache import patch_cache_control
 from json import JSONEncoder
-import collections, socket, time, re
-import subprocess
 from operator import methodcaller
 from configparser import ConfigParser
 from xml.etree import ElementTree
+import collections
+import socket
+import time
+import re
+import subprocess
 from .models import *
 from .spotify_utils import *
 from .splayer import SplayerController
@@ -29,6 +32,13 @@ from . import __path__
 config_file = '/var/tmp/pongo_server/pongo.ini'
 pongo_config = ConfigParser()
 pongo_config.read(config_file)
+splayer_config_file='/var/tmp/pongo_daemon/splayerd/splayerd.cfg'
+splayer_config_data = """splayer :
+{
+  username = "%s";
+  password = "%s";
+};
+"""
 splayer_controller = SplayerController()
 json_encoder = JSONEncoder()
 wifi_manager = WifiManager()
@@ -304,6 +314,15 @@ def settings_connect_new(request):
 def settings_disconnect(request):
     device = request.POST['device']
     wifi_manager.disconnect(device)
+    return redirect('/settings/')
+
+def settings_credentials(request):
+    if request.method == 'POST':
+        data = splayer_config_data%(
+            request.POST['username'],
+            request.POST['password'])
+        with open(splayer_config_file, 'w') as output:
+            output.write(data)
     return redirect('/settings/')
 
 def settings_eject(request):

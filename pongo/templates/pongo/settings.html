@@ -317,7 +317,7 @@ function toggleDisplay(id) {
       <i class="fa fa-caret-down toggle" style="display: none;"></i>
       Spotify Credentials</h2>
     <div class="credentials toggle" style="display: none;"> 
-    <form method="post" action="settings/credentials/">
+    <form method="post" action="/settings/credentials/">
       {% csrf_token %}
       <table class="form_table">
 	<tr>
@@ -336,7 +336,7 @@ function toggleDisplay(id) {
 	</tr>
 	<tr>
 	  <td class="label">Password:</td>
-	  <td><input id="password" name="password" type="password"></td>
+	  <td><input id="password" name="password" type="text"></td>
 	</tr>
 	<tr>
 	  <td class="submit" colspan="2"><input type="submit" value="Save"></td>
