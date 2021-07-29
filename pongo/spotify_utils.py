@@ -54,13 +54,15 @@ def get_current_user(request=None):
         path = '/'
     else:
         path = request.get_full_path().rstrip('/') + '/'
-    auth_object = oauth2.SpotifyOAuth(PONGO_CLIENT_ID,
-                                      PONGO_CLIENT_SECRET,
-                                      REDIRECT,
-                                      scope=SCOPE,
-                                      cache_path=AUTH_CACHE)
-    token = auth_object.get_cached_token()
-    # print(token)
+    try:
+        auth_object = oauth2.SpotifyOAuth(PONGO_CLIENT_ID,
+                                          PONGO_CLIENT_SECRET,
+                                          REDIRECT,
+                                          scope=SCOPE,
+                                          cache_path=AUTH_CACHE)
+        token = auth_object.get_cached_token()
+    except:
+        return None
     if token:
         spotify = Spotify(auth=token['access_token'])
         try:
