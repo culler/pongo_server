@@ -80,6 +80,10 @@ div#player_tab {
  color: #ffffff;
  background-color: #0000e0;
  font-weight: bold;
+  }
+div.no_daemon {
+    text-align: center;
+    margin-top: 150px;
 }
 {% endblock %}
 
@@ -119,23 +123,31 @@ div#player_tab {
     <span id="timer_colon" class="colon">&nbsp;</span>
     <span id="timer_seconds" class="seconds"></span>
   </div>
-<form method="post" action="queue/current">
-<div id="queue">
-  {% for track in tracks %}
-  <div class="track_item"{% if track.is_current %} id="current_track"{% endif %}>
-    <input class="queue_radio" type="radio" name="select_track" value="track.id" {% if track.is_current %}checked="checked"{% else %} onclick="playerAction('jump/{{ forloop.counter0 }}');"{% endif %}>
-    <div class="queue_delete" onclick="playerAction('remove/{{ forloop.counter0 }}');">
-      <i class="fa fa-times-circle"></i>
+{% if daemon_is_running %}  
+  <form method="post" action="queue/current">
+    <div id="queue">
+      {% for track in tracks %}
+      <div class="track_item"{% if track.is_current %} id="current_track"{% endif %}>
+	<input class="queue_radio" type="radio" name="select_track" value="track.id" {% if track.is_current %}checked="checked"{% else %} onclick="playerAction('jump/{{ forloop.counter0 }}');"{% endif %}>
+	<div class="queue_delete" onclick="playerAction('remove/{{ forloop.counter0 }}');">
+          <i class="fa fa-times-circle"></i>
+	</div>
+	<div class="{% if track.is_current %}green {% endif %}track_name">
+          <span class="track_time">[{{ track.duration }}]</span>{{ track.name }}
+	</div>
+	<div class="track_artists">
+          {{ track.artist_names }}
+	</div>
+      </div>{% endfor %}
     </div>
-    <div class="{% if track.is_current %}green {% endif %}track_name">
-      <span class="track_time">[{{ track.duration }}]</span>{{ track.name }}
-    </div>
-    <div class="track_artists">
-      {{ track.artist_names }}
-    </div>
-  </div>{% endfor %}
-</div>
-</form>
+  </form>
+{% else %}
+  <div class="no_daemon">
+    <h1>No Player Daemon!</h1>
+    Make sure you have entered your spotify credentials in the
+    <a href="/settings/">Settings</a>.
+  </div>
+{% endif %}
 {% endblock %}
 {% block tools %}
       <div class="toolleft" onclick="location.href='/settings/';">

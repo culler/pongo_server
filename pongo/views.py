@@ -191,6 +191,9 @@ def player(request):
         return HttpResponse('Could not connect to splayerd')
     tracks = []
     player_state = splayer_controller.get_state()
+    if player_state == 'FAILED':
+        return render(request, 'pongo/player.html',
+                      {'daemon_is_running': False})
     current = player_state['current_track']
     # This only works for spotify uris!  Fix for others.
     current_id = current.split(':')[-1] if current else None
@@ -213,7 +216,8 @@ def player(request):
                       0 <= current_index < queue_length - 1)
     player_ready = (player_state['track_loaded'] == 'true' or
                     player_state['current_index'] >= player_state['queue_length'])
-    context = {'server': pongo_config.get('server', 'name'),
+    context = {'daemon_is_running': True,
+               'server': pongo_config.get('server', 'name'),
                'tracks': tracks,
                'remaining': player_state['remaining'],
                'queue_length': queue_length,
