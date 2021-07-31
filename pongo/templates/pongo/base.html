@@ -12,14 +12,44 @@
   <link rel="stylesheet" type="text/css"
 	href="{% static 'pongo/font-awesome.min.css' %}">
 {% block css %}{% endblock %}
-  <script type="text/javascript">{% block script %}{% endblock %}
+  <script>
+function togglePasteBox() {
+    var box = document.getElementById("pastebox");
+    if (box.style.display == "inline-block") {
+	box.style.display = "none";
+    } else {
+	box.style.display = "inline-block";
+    }
+}
+{% block script %}{% endblock %}
   </script>
-  <style type="text/css">
-{% block style %}
-{% endblock %}
+  <style>
+  div#pastebox {
+      display: none;
+      border: 2px solid black;
+      background-color: white;
+      border-radius: 10px;
+      text-align: center;
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      margin-left: -150px;
+      width: 300px;
+      height: 60px;
+  }
+
+{% block style %}{% endblock %}
   </style>
   </head>
   <body>
+    <div id="pastebox">
+	Paste a Spotify link:<br>
+	<form action="/paste/" method="post">
+	  {% csrf_token %}
+	<input type="text" name="link">
+	<input type="submit" value="Go">
+      </form>
+    </div>
 {% block navigation %}
     <div id="top_space">
     </div>
@@ -63,7 +93,7 @@
 	  </form>{% endif %}
 	</div>
   {% endblock %}
-  {% block heading %}	
+  {% block heading %}
 	{{ server }}
   {% endblock %}
       </div>
@@ -83,7 +113,7 @@
 	  PLAYER
 	</div>
       </div>
-   {% endblock %}  
+   {% endblock %}
     </div><!-- top_bar -->
 {% endblock %}
 <div id="content">
@@ -108,9 +138,15 @@
 	<i class="fa fa-refresh"></i><br>
 	<span class="tooltext">SYNC</span></div>
 
+{% if is_app %}
       <div class="tool" onclick="location.href='/pongo/paste_link';">
 	<i class="fa fa-link"></i><br>
 	<span class="tooltext">LINK</span></div>
+{% else %}
+      <div class="tool" onclick="togglePasteBox();">
+	<i class="fa fa-link"></i><br>
+	<span class="tooltext">LINK</span></div>
+{% endif %}
   {% endblock %}
   </div><!-- toolbar -->
 {% block tailscript %}

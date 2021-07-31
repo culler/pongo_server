@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.utils.cache import patch_cache_control
@@ -7,6 +7,7 @@ from json import JSONEncoder
 from operator import methodcaller
 from configparser import ConfigParser
 from xml.etree import ElementTree
+from urllib.parse import urlparse
 import collections
 import socket
 import time
@@ -172,12 +173,34 @@ def suggest(request):
     response.set_cookie('tab', 'suggest')
     return response
 
+def browser_paste(request):
+    link = request.POST['link']
+    if re.match('^spotify:album:[A-z0-9+-_]{22}', link):
+        id = link.split(':')[2]
+        uriType = 'album'
+    elif re.match('^spotify:user:[^:]*:playlist:[A-z0-9+-_]{22}', link):
+        id = link.split(':')[4]
+        uriType = 'playlist'
+    elif link.startswith('http'):
+        parts = urlparse(link)
+        path = parts.path
+        if path.startswith('/album'):
+            id = path.split('/')[2]
+            uriType = 'album'
+        elif re.match('^/user/.*/playlist/[A-z0-9+-_]{22}', path):
+            id = path.split('/')[4]
+            uriType = 'playlist'
+    if uriType == 'album':
+        return redirect('album_paste', id=id)
+    elif uriType == 'playlist':
+        return HttpResponse('Link = %s'%link)
+
 def album_paste(request, id):
     clear()
     return album(request, id)
 
 def playlist_paste(request, id):
-    return HttpResponse('ID = %s'%i)
+    return HttpResponse('ID = %s'%id)
 
 def paste_error(request):
     return render(request, 'pongo/paste_error.html', {})

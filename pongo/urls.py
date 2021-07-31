@@ -42,6 +42,7 @@ urlpatterns = [
     path('paste/playlist/<spid:id>/', views.playlist_paste,
         name='playlist_paste'),
     path('paste/error/', views.paste_error, name='paste_error'),
+    path('paste/', views.browser_paste, name='browser_paste'),
 
     # Albums
     path('album/<spid:id>/', views.album, name='album'),
@@ -53,7 +54,7 @@ urlpatterns = [
 
     # Suggest
     path('suggest/', views.suggest, name='suggest'),
-    
+
     # Player
       # AJAX player control commands
     path('player/play/<spid:id>/', views.player_play_album,
@@ -91,7 +92,7 @@ urlpatterns = [
     path('settings/shutdown/', views.settings_shutdown,
         name='settings_shutdown'),
     path('settings/', views.settings, name='settings'),
-    
+
     # Spotify interaction
     path('spotify/album/save/<spid:id>/', views.spotify_album_save,
         name='spotify_album_save'),
